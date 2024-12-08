@@ -5,9 +5,7 @@ from random import uniform as rnd
 from ImageFinder.ImageFinder import get_images_links as find_image
 from streamlit_echarts import st_echarts
 
-st.set_page_config(page_title="Automatic Diet Recommendation", page_icon="💪",layout="wide")
-
-
+st.set_page_config(page_title="Automatic Diet Recommendation", page_icon="🥗",layout="wide")
 
 nutritions_values=['Calories','FatContent','SaturatedFatContent','CholesterolContent','SodiumContent','CarbohydrateContent','FiberContent','SugarContent','ProteinContent']
 # Streamlit states initialization
@@ -77,6 +75,7 @@ class Person:
             generator=Generator(recommended_nutrition)
             recommended_recipes=generator.generate().json()['output']
             recommendations.append(recommended_recipes)
+            
         for recommendation in recommendations:
             for recipe in recommendation:
                 recipe['image_link']=find_image(recipe['Name']) 
@@ -109,7 +108,7 @@ class Display:
                 st.metric(label=plan,value=f'{round(maintain_calories*weight)} Calories/day',delta=loss,delta_color="inverse")
 
     def display_recommendation(self,person,recommendations):
-        st.header('DIET RECOMMENDATOR')  
+        st.header('DIET RECOMMENDATIONS')  
         with st.spinner('Generating recommendations...'): 
             meals=person.meals_calories_perc
             st.subheader('Recommended recipes:')
@@ -147,6 +146,7 @@ class Display:
 
     def display_meal_choices(self,person,recommendations):    
         st.subheader('Choose your meal composition:')
+        
         # Display meal compositions choices
         if len(recommendations)==3:
             breakfast_column,launch_column,dinner_column=st.columns(3)
@@ -242,6 +242,7 @@ class Display:
 display=Display()
 title="<h1 style='text-align: center;'>Automatic Diet Recommendation</h1>"
 st.markdown(title, unsafe_allow_html=True)
+
 with st.form("recommendation_form"):
     st.write("Modify the values and click the Generate button to use")
     age = st.number_input('Age',min_value=2, max_value=120, step=1)
@@ -251,16 +252,20 @@ with st.form("recommendation_form"):
     activity = st.select_slider('Activity',options=['Little/no exercise', 'Light exercise', 'Moderate exercise (3-5 days/wk)', 'Very active (6-7 days/wk)', 
     'Extra active (very active & physical job)'])
     option = st.selectbox('Choose your weight loss plan:',display.plans)
+
     st.session_state.weight_loss_option=option
     weight_loss=display.weights[display.plans.index(option)]
     number_of_meals=st.slider('Meals per day',min_value=3,max_value=5,step=1,value=3)
+
     if number_of_meals==3:
         meals_calories_perc={'breakfast':0.35,'lunch':0.40,'dinner':0.25}
     elif number_of_meals==4:
         meals_calories_perc={'breakfast':0.30,'morning snack':0.05,'lunch':0.40,'dinner':0.25}
     else:
         meals_calories_perc={'breakfast':0.30,'morning snack':0.05,'lunch':0.40,'afternoon snack':0.05,'dinner':0.20}
+
     generated = st.form_submit_button("Generate")
+
 if generated:
     st.session_state.generated=True
     person = Person(age,height,weight,gender,activity,meals_calories_perc,weight_loss)
